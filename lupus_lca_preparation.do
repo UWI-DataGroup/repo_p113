@@ -1,31 +1,39 @@
+** HEADER -----------------------------------------------------
+**  DO-FILE METADATA
+//  algorithm name			lupus_lca_preparation.do
+//  project:						Epidemiology of Lupus in ST.Lucia
+//  analysts:						Ian HAMBLETON
+//	date last modified	15-Aug-2018
+//  algorithm task			Preparing the data for analysis
 
-** CLOSE ANY OPEN LOG FILE AND OPEN A NEW LOG FILE
-capture log close
-cd "C:\Sync\statistics\analysis\a999\023-lupus_LCA\version02"
-log using lupus_preparation, replace
-
-**  GENERAL DO-FILE COMMENTS
-//  program:      lupus_lca_preparation_v2.do
-//  project:      Lupus in St.Lucia
-//  author:       HAMBLETON \ 30-APRIL-2018
-//  task:         Lupus cohort in LCA. Preparing dataset
-//				  Data from Amanda Greenidge. April 30, 2018.
-
-** DO-FILE SET UP COMMANDS
+** General algorithm set-up
 version 15
 clear all
 macro drop _all
 set more 1
-set linesize 80 
+set linesize 80
+
+** Set working directories: this is for DATASET and LOGFILE import and export
+** DATASETS to encrypted SharePoint folder
+local datapath "X:\The University of the West Indies\DataGroup - repo_data\data_p113\"
+** LOGFILES to unencrypted OneDrive folder
+local logpath X:\OneDrive - The University of the West Indies\repo_datagroup\repo_p113
+
+** Close any open log fileand open a new log file
+capture log close
+cap log using "`logpath'\lupus_lca_preparation", replace
+** HEADER -----------------------------------------------------
+
 
 
 ** ***************************************************
-** DATASET PART 1. 
+** DATASET PART 1.
 ** IAN HAMBLETON CODE
 ** ***************************************************
 
 ** Load the unprepared 2018 dataset
-import excel using "Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("Data pt1 (IH)") first
+** Data from Amanda Greenidge. April 30, 2018.
+import excel using "`datapath'\version01\1-input\Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("Data pt1 (IH)") first
 
 ** Unique ID. Drop empty rows from dataset
 rename ID pid
@@ -51,7 +59,7 @@ drop SEX temp1
 order sex, after(first)
 
 ** Date of Birth - data Corrections due to mis-entered dates
-rename DOB dob 
+rename DOB dob
 replace dob = "12aug1984" if pid==14 & dob=="August 12th, 1984"
 replace dob = "6May1997" if pid==28 & dob=="Tuesday May6th, 1997"
 replace dob = "27jan1988" if pid==35 & dob=="January 27th, 1988"
@@ -103,7 +111,7 @@ label var yosym  "Year of first symptoms"
 order yosym, after(aad10)
 
 ** YEAR of Diagnosis
-rename YEARDx yodx 
+rename YEARDx yodx
 label var yodx "Year of diagnosis"
 order yodx, after(yosym)
 
@@ -139,7 +147,7 @@ order discount, after(status)
 gen district = .
 replace district = 1 if  DISTRICT=="ANSE LA RAYE" | DISTRICT=="ANSE-LA-RAYE"
 replace district = 2 if  DISTRICT=="BABONNEAU"
-replace district = 3 if  DISTRICT=="CANARIES" 
+replace district = 3 if  DISTRICT=="CANARIES"
 replace district = 4 if  DISTRICT=="CASTRIES"
 replace district = 5 if  DISTRICT=="CHOISEUL"
 replace district = 6 if  DISTRICT=="DENNERY"
@@ -159,8 +167,8 @@ label define district 	1 "anse-la-raye"	///
 						9 "micoud"			///
 						10 "soufriere"		///
 						11 "vieux fort"
-						
-label values district district						
+
+label values district district
 
 label var district "District of residence"
 order district, after(discount)
@@ -176,9 +184,9 @@ label var educ "Participant educational level"
 order educ, after(district)
 
 ** Occupation
-replace OCCUPATIONISCO08=" " if OCCUPATIONISCO08=="UNKNOWN" 
-replace OCCUPATIONISCO08="5" if OCCUPATIONISCO08=="?5" 
-replace OCCUPATIONISCO08=" " if OCCUPATIONISCO08=="x" 
+replace OCCUPATIONISCO08=" " if OCCUPATIONISCO08=="UNKNOWN"
+replace OCCUPATIONISCO08="5" if OCCUPATIONISCO08=="?5"
+replace OCCUPATIONISCO08=" " if OCCUPATIONISCO08=="x"
 gen occ=.
 replace occ = 0 if OCCUPATIONISCO08=="0"
 replace occ = 1 if OCCUPATIONISCO08=="1"
@@ -203,7 +211,7 @@ drop YrslivedsinceDx DATE1STSYMPTOMS ADDRESS Discountexempt today DISTRICT Educa
 
 ** Save the file
 label data "Lupus in St.Lucia: dataset 13-april-2018"
-save lupus_lca_001, replace
+save "`datapath'\version01\2-working\lupus_lca_001", replace
 
 
 
@@ -211,11 +219,11 @@ save lupus_lca_001, replace
 
 
 ** ***************************************************
-** DATASET PART 2. 
+** DATASET PART 2.
 ** CATHERINE BROWN CODE
 ** ***************************************************
 ** Load the unprepared 2018 dataset
-import excel using "Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("Data pt2 (CB)") first clear
+import excel using "`datapath'\version01\1-input\Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("Data pt2 (CB)") first clear
 
 ** Unique ID. Drop empty rows from dataset
 rename ID pid
@@ -403,7 +411,7 @@ label values neur1 dfeat
 
 ** Save the file
 label data "Lupus in St.Lucia: dataset 13-april-2018"
-save lupus_lca_002, replace
+save "`datapath'\version01\2-working\lupus_lca_002", replace
 
 
 
@@ -412,12 +420,12 @@ save lupus_lca_002, replace
 
 
 ** ***************************************************
-** DATASET PART 3. 
+** DATASET PART 3.
 ** CHRISTINA HOWITT CODE
 ** ***************************************************
 
 *import data from excel to Stata
-import excel "Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("Data pt3 (CH)") firstrow clear
+import excel "`datapath'\version01\1-input\Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("Data pt3 (CH)") firstrow clear
 
 ** DO-FILE SECTION 01: Prep section 1 of variables (investigations)
 rename ECHO echo
@@ -659,7 +667,7 @@ label values bis med
 
 
 ** DO-FILE SECTION 04: Prep section 4 of variables (other)
-drop SLEDAI CONTAC_NO 
+drop SLEDAI CONTAC_NO
 
 rename ALIVE alive
 label define alive 0 "dead" 1 "alive"
@@ -673,10 +681,10 @@ label define fam 0 "no family history" 1 "family history"
 label values fam fam
 
 rename ACR_CRITERIA acr
-label variable acr "Number of criteria met by participant according to American College of Rheumatology"
+label variable acr "# of criteria according to Am Coll of Rheumatology"
 
 rename SLICC slicc
-label variable slicc "Number of criteria met by participant according to Systemic Lupus International Collaborating Clinics"
+label variable slicc "# of criteria according to Systemic Lupus International Collaborating Clinics"
 
 rename Adherent adh
 label variable adh "Subjective measure of whether participant is taking medication >80% of the time"
@@ -698,17 +706,17 @@ drop AW AX COMMENTS
 ** Save the file
 rename ID pid
 label data "Lupus in St.Lucia: dataset 13-april-2018"
-save lupus_lca_003, replace
+save "`datapath'\version01\2-working\lupus_lca_003", replace
 
 
 ** *****************************************************
 ** Merge the three datasets
 ** *****************************************************
 use lupus_lca_001, clear
-merge 1:1 pid using lupus_lca_002
+merge 1:1 pid using "`datapath'\version01\2-working\lupus_lca_002"
 drop if _merge==2
 drop _merge
-merge 1:1 pid using lupus_lca_003
+merge 1:1 pid using "`datapath'\version01\2-working\lupus_lca_003"
 drop if _merge==2
 drop _merge
 
@@ -717,7 +725,7 @@ drop _merge
 ** Save the MERGED file
 ** *****************************************************
 label data "Lupus in St.Lucia: dataset 13-april-2018"
-save lupus_lca_april2018_v3, replace
+save "`datapath'\version01\2-working\lupus_lca_april2018_v3", replace
 
 
 
@@ -886,7 +894,7 @@ gen acrmeet=0
 order acrmeet, before(slicc)
 replace acrmeet=1 if acr>=4 & acr<.
 label variable acrmeet "Person meets ACR criteria"
-label define acrmeet 0 "does not meet ACR criteria" 1 "meets ACR criteria" 
+label define acrmeet 0 "does not meet ACR criteria" 1 "meets ACR criteria"
 label values acrmeet acrmeet
 tab acrmeet
 tab slicc
@@ -897,10 +905,10 @@ label variable sliccmeet "Person meets SLICC criteria"
 label define sliccmeet 0 "does not meet SLICC criteria" 1 "meets SLICC criteria"
 label values sliccmeet sliccmeet
 tab sliccmeet
-*Meeting SLICC but not ACR & vice versa											// CH: I have no idea if this makes sense 	
+*Meeting SLICC but not ACR & vice versa											// CH: I have no idea if this makes sense
 preserve
 	drop if neph==. | (ana==0 & dna==.) | (dna==0 & ana==.)
-	gen slicc_var = 0															
+	gen slicc_var = 0
 	replace slicc_var = 1 if neph==1 & (ana==1 | dna==1)
 	tab slicc_var
 restore
@@ -949,7 +957,7 @@ tab lipid
 gen ovob=0
 order ovob, before(hcq)
 label variable ovob "Person overweight or obese"
-label define ovob 0 "not overweight or obese" 1 "overweight or obese" 
+label define ovob 0 "not overweight or obese" 1 "overweight or obese"
 label values ovob ovob
 replace ovob=1 if bmi2>=25 & bmi2<.
 replace ovob=. if bmi2==.
@@ -957,7 +965,7 @@ tab ovob
 *recoding "overweight or obese" to separate "at presentation" and "at follow-up"
 rename ovob ovob2
 label variable ovob2 "Person overweight or obese at last follow up"
-label define ovob2 0 "not overweight or obese at last follow up" 1 "overweight or obese at last follow up" 
+label define ovob2 0 "not overweight or obese at last follow up" 1 "overweight or obese at last follow up"
 label values ovob2 ovob2
 replace ovob2=1 if bmi2>=25 & bmi2<.
 replace ovob2=. if bmi2==.
@@ -966,7 +974,7 @@ tab ovob2
 gen ovob1=0
 order ovob1, before(ovob2)
 label variable ovob1 "Person overweight or obese at presentation"
-label define ovob1 0 "not overweight or obese at presentation" 1 "overweight or obese at presentation" 
+label define ovob1 0 "not overweight or obese at presentation" 1 "overweight or obese at presentation"
 label values ovob1 ovob1
 replace ovob1=1 if bmi1>=25 & bmi1<.
 replace ovob1=. if bmi1==.
@@ -983,9 +991,9 @@ foreach var in educ2 occ_grade1 discount {
 	restore
 	}
 
-	
-	
-	
+
+
+
 **Table 3d *********************************************
 *Refer to CH's regression dofile
 
@@ -1013,7 +1021,7 @@ foreach var in educ2 occ_grade1 discount {
 
 **Table 4c *********************************************
 *Refer to CH's regression dofile
-		
+
 ** Addendum*********************************************
 *Calculate incidence rate per year band as seen in Figure 1
 	*1. Create variable for general popln, by yearband
@@ -1090,7 +1098,7 @@ preserve
 	gen irc=(country/(pop3))*100000
 restore
 
-/* 
+/*
 ** TODO
 ** Table 1: Calculate overall prevalence
 
@@ -1108,18 +1116,18 @@ preserve
 	replace dpop=8172 if district==9
 	replace dpop=4169 if district==10
 	replace dpop=8271 if district==11
-		
+
 	*4. Collapse year of diagnoses into districts
 	drop if sex==2
 	gen k=1
 	collapse (sum) k, by(district dpop)
 	sort district
 	gen ir=.
-	replace ir=(k/(dpop*48))*100000 
+	replace ir=(k/(dpop*48))*100000
 	gen dpop1=dpop
 	replace dpop1=(dpop*48)
 	gsort -ir
-	
+
 	*IH used "cii prop" command to calculate the confidence intervals for these
 restore
 
@@ -1128,39 +1136,24 @@ restore
 
 
 
-		
-/*		
+
+/*
 ** WORKING NOTES (To be ignored)
 *Table 1: Calculate overall incidence (1970 - 2018)
 	*Code changed in appropriate section
 
-*Table 1 (?): Calculate average time it took to get diagnosed (years from symptoms to diagnosis) 
+*Table 1 (?): Calculate average time it took to get diagnosed (years from symptoms to diagnosis)
 	summarize sym2dx, detail
-	
+
 *Table 2a: Recalculate renal biopsy as % of people with nephritis who had renal biopsy
 	*Code changed in appropriate section
-	
+
 *Table 3b: Label existing "% Overweight or obese" as "% Overweight or obese at last follow up"; and calculate "% Overweight or obese at presentation"
 	*Code changed in appropriate section
-		
+
 *After Table 4a (in text perhaps): calculate % who did the self-help program
 	*Code changed in appropriate section
-		
+
 *Nephritis data is incorrect. This affects Fig 2A-2D, Figure 4, Table 2a (Renal biopsy), Table 3c, Table 5a. Need to rerun.
 
 *Regression figure (CH has her own dofile): Need to have each predictor have a different symbol (abstract is monochromatic).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

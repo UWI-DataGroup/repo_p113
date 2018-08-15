@@ -1,22 +1,31 @@
-** CHANGE THIS FOR RE-RUN ON NEW COMPUTER	
-    cd "C:\Users\Christina\Google Drive\Christina_work\Projects\stlucia_lupus"
+** HEADER -----------------------------------------------------
+**  DO-FILE METADATA
+//  algorithm name			lupus_lca_regressions.do
+//  project:						Epidemiology of Lupus in ST.Lucia
+//  analysts:						Ian HAMBLETON
+//	date last modified	15-Aug-2018
+//  algorithm task			Regressions
 
-** CLOSE ANY OPEN LOG FILE AND OPEN A NEW LOG FILE
-	capture log close
-	log using stlucia_lupus_v1, replace
-
-**  GENERAL DO-FILE COMMENTS
-//  project:      St Lucia Lupus
-//  author:       Christina Howitt 16-Apr-18
-//  description:  This do-file has been created to carry out the regression analyses for the St Lucia lupus analysis
-	
-** DO-FILE SECTION 00
-** DO-FILE SET UP COMMANDS
-version 14.2
+** General algorithm set-up
+version 15
 clear all
-	
-*import data 
-use lupus_lca_april2018.dta, clear
+macro drop _all
+set more 1
+set linesize 80
+
+** Set working directories: this is for DATASET and LOGFILE import and export
+** DATASETS to encrypted SharePoint folder
+local datapath "X:\The University of the West Indies\DataGroup - repo_data\data_p113\"
+** LOGFILES to unencrypted OneDrive folder
+local logpath X:\OneDrive - The University of the West Indies\repo_datagroup\repo_p113
+
+** Close any open log fileand open a new log file
+capture log close
+cap log using "`logpath'\lupus_lca_regressions", replace
+** HEADER -----------------------------------------------------
+
+*import data
+use "`datapath'\version01\2-working\lupus_lca_april2018_v3.dta", clear
 
 numlabel, add mask ("#",)
 
@@ -70,7 +79,7 @@ gen self2 =.
 replace self2=0 if self==1
 replace self2=1 if self==0
 label define self2 0 "Done programme" 1 "Not done programme"
-label values self2 self2 
+label values self2 self2
 
 
 
@@ -87,8 +96,8 @@ logistic sev sex age dx2now educ2 occ_grade1 discount adh
 logistic adh2 sex age dx2now educ2
 logistic adh2 sex age dx2now discount
 logistic adh2 sex age dx2now self2
-logistic adh2 sex age dx2now educ2 i.occ_grade1 discount 
-logistic adh2 sex age dx2now educ2 occ_grade1 discount 
+logistic adh2 sex age dx2now educ2 i.occ_grade1 discount
+logistic adh2 sex age dx2now educ2 occ_grade1 discount
 
 
 
@@ -107,4 +116,3 @@ logistic dial sex age i.educ2
 logistic dial sex age discount
 logistic dial i.sex age dx2now i.educ2 i.occ_grade1 discount adh
 logistic dial sex age dx2now educ2 occ_grade1 discount adh
-
