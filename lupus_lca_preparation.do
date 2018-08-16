@@ -24,7 +24,7 @@ capture log close
 cap log using "`logpath'\lupus_lca_preparation", replace
 ** HEADER -----------------------------------------------------
 
-
+/*
 
 ** ***************************************************
 ** DATASET PART 1.
@@ -709,10 +709,12 @@ label data "Lupus in St.Lucia: dataset 13-april-2018"
 save "`datapath'\version01\2-working\lupus_lca_003", replace
 
 
+
+*/
 ** *****************************************************
 ** Merge the three datasets
 ** *****************************************************
-use lupus_lca_001, clear
+use "`datapath'\version01\2-working\lupus_lca_001", clear
 merge 1:1 pid using "`datapath'\version01\2-working\lupus_lca_002"
 drop if _merge==2
 drop _merge
@@ -729,7 +731,6 @@ save "`datapath'\version01\2-working\lupus_lca_april2018_v3", replace
 
 
 
-/*
 
 ** *****************************************************
 ** CB Descriptive analyses
@@ -755,111 +756,158 @@ label values occ_grade1 occ_grade1
 recode adh 2=0 3=1
 
 ** Table 1**********************************************
-summarize age
+* Age at diagnosis
+sum aad
+bysort sex: sum aad
+* Age at analysis (13 April 2018)
+sum age
+bysort sex: sum  age
 tab sex
 tab educ2
 tab occ_grade1
 tab discount
 tab fam
 
+
 ** Table 2a*********************************************
 *Diagnostic tests
+
+* Antinuclear antibody. Line 1
 tab ana
 local num = r(N)
 tab ana,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
-tab rnp
-local num = r(N)
-tab rnp,miss
-local denom = r(N)
-dis "`num' / `denom' = " (`num' / `denom')*100
+
+* double-stranded DNA. line 2
 tab dna
 local num = r(N)
 tab dna,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
-tab ssa
+
+* RNP antibody. Line 3
+tab rnp
 local num = r(N)
-tab ssa,miss
+tab rnp,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
-tab ssb
-local num = r(N)
-tab ssb,miss
-local denom = r(N)
-dis "`num' / `denom' = " (`num' / `denom')*100
+
+* anti-Smith antibody. Line 4
 tab sm
 local num = r(N)
 tab sm,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
-tab scl
+
+* Anti-SSA. Line 5
+tab ssa
 local num = r(N)
-tab scl,miss
+tab ssa,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+* anti-SSB. Line 6
+tab ssb
+local num = r(N)
+tab ssb,miss
+local denom = r(N)
+dis "`num' / `denom' = " (`num' / `denom')*100
+
+* anti-cardiolipin antibodies. Line 7
 tab acl
 local num = r(N)
 tab acl,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+* lupus anticoagulant. Line 8
 tab lac
 local num = r(N)
 tab lac,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+* β-2-glycoprotein-1. Line 9
 tab gp1
 local num = r(N)
 tab gp1,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+* Rheumatoid factors. Line 10
 tab rf
 local num = r(N)
 tab rf,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+** anti-Scleroderma 70 antibody. Line 11
+tab scl
+local num = r(N)
+tab scl,miss
+local denom = r(N)
+dis "`num' / `denom' = " (`num' / `denom')*100
+
+* anti-cyclic citrullinated peptide antibodies. Line 12
 tab ccp
 local num = r(N)
 tab ccp,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
-tab jo1
-local num = r(N)
-tab jo1,miss
-local denom = r(N)
-dis "`num' / `denom' = " (`num' / `denom')*100
+
+* anti-neutrophil cytoplasmic antibodies. Line 13
 tab anca
 local num = r(N)
 tab anca,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+* Jo1 antibodies. Line 14
+tab jo1
+local num = r(N)
+tab jo1,miss
+local denom = r(N)
+dis "`num' / `denom' = " (`num' / `denom')*100
+
+
+** OTHER investigations
+** C3 and C4 (low)
 tab lowc3c4
 local num = r(N)
 tab lowc3c4,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+** 25-hydroxy vitamin D (low)
 tab lowvd
 local num = r(N)
 tab lowvd,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
-*Other investigations
+
+** Echocardiogram
 tab echo
 local num = r(N)
 tab echo,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+** High-resolution chest CT
 tab ct
 local num = r(N)
 tab ct,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+** Upper GI endoscopy
 tab endo
 local num = r(N)
 tab endo,miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
+
+** Renal biopsy
 tab biop
 local num = r(N)
 gen biopk=1
@@ -867,27 +915,29 @@ tab biopk if neph==1, miss
 local denom = r(N)
 dis "`num' / `denom' = " (`num' / `denom')*100
 
+
 ** Table 2b*********************************************
-*Presenting features
-tab alo
+** Presenting features
 tab arth
-tab mrash
+tab fati
+tab alo
 tab drash
-tab lymn
+tab anem
 tab photo
 tab fev
-tab anem
-tab lymp
-tab tbcp
-tab protu
-tab smisc
 tab plchp
-tab neur
-tab fati
-tab ray
-tab ulcer
+tab lymp
+tab mrash
 tab mymy
+tab protu
 tab dry
+tab ulcer
+tab lymn
+tab ray
+tab tbcp
+tab neur
+tab smisc
+
 *Diagnostic criteria
 tab acr
 gen acrmeet=0
@@ -914,46 +964,36 @@ preserve
 restore
 
 
-** Table 3a*********************************************
+** *******************************************
+** Table 3a
+** Developed features among 143 patients with systemic lupus erythematosus
+** *******************************************
+tab protu1
 tab alo1
-tab arth1
-tab mrash1
+tab neur1
+tab plchp1
+tab ray1
 tab drash1
-tab lymn1
+tab tbcp1
 tab photo1
 tab fev1
+tab arth1
+tab ulcer1
+tab mrash1
+tab dry1
+tab lymn1
 tab anem1
 tab lymp1
-tab tbcp1
-tab protu1
-tab smisc1
-tab plchp1
-tab neur1
-tab fati1
-tab ray1
-tab ulcer1
 tab mymy1
-tab dry1
+tab fati1
+tab smisc1
 
 
-** Table 3b*********************************************
-tab peri
-tab neph
-tab renal
-tab cerv
-tab osteo
-tab avas
-tab pleur
-tab pulm
-tab htn
-tab cat
-tab lung
-tab pulmf
-tab cereb
-tab dvt
-tab dm
-tab lipid
-*code for "Overwight or obese"
+** *********************************************
+** Table 3b
+** SLE complications among 143 patients with systemic lupus erythematosus
+** *********************************************
+* Overwight or obese
 gen ovob=0
 order ovob, before(hcq)
 label variable ovob "Person overweight or obese"
@@ -962,26 +1002,48 @@ label values ovob ovob
 replace ovob=1 if bmi2>=25 & bmi2<.
 replace ovob=. if bmi2==.
 tab ovob
-*recoding "overweight or obese" to separate "at presentation" and "at follow-up"
-rename ovob ovob2
-label variable ovob2 "Person overweight or obese at last follow up"
-label define ovob2 0 "not overweight or obese at last follow up" 1 "overweight or obese at last follow up"
-label values ovob2 ovob2
-replace ovob2=1 if bmi2>=25 & bmi2<.
-replace ovob2=. if bmi2==.
-tab ovob2
-*code for "Overweight or obese at presentation"
+** Overweight or obese at presentation
 gen ovob1=0
-order ovob1, before(ovob2)
+order ovob1, after(ovob)
 label variable ovob1 "Person overweight or obese at presentation"
 label define ovob1 0 "not overweight or obese at presentation" 1 "overweight or obese at presentation"
 label values ovob1 ovob1
 replace ovob1=1 if bmi1>=25 & bmi1<.
 replace ovob1=. if bmi1==.
 tab ovob1
+** Overweight or Obese at last follow-up rename ovob ovob2
+rename ovob ovob2
+order ovob2, after(ovob1)
+label variable ovob2 "Person overweight or obese at last follow up"
+label define ovob2 0 "not overweight or obese at last follow up" 1 "overweight or obese at last follow up"
+label values ovob2 ovob2
+replace ovob2=1 if bmi2>=25 & bmi2<.
+replace ovob2=. if bmi2==.
+tab ovob2
+
+tab neph
+tab htn
+tab osteo
+tab lipid
+tab cereb
+tab pleur
+tab peri
+tab renal
+tab lung
+tab dvt
+tab cerv
+tab avas
+tab dm
+tab pulm
+tab pulmf
+tab cat
 
 
-** Table 3c*********************************************
+
+** *********************************************
+** Table 3c
+** Disease severity by markers of socio-economic position
+** *********************************************
 foreach var in educ2 occ_grade1 discount {
 	preserve
 		drop if cereb==. | neph==. | dial==. | `var'==.
@@ -993,11 +1055,10 @@ foreach var in educ2 occ_grade1 discount {
 
 
 
-
-**Table 3d *********************************************
-*Refer to CH's regression dofile
-
-** Table 4a**********************************************
+** *********************************************
+** Table 4A
+** SLE medications among 143 patients
+** *********************************************
 tab hcq
 tab chq
 tab mmf
@@ -1011,6 +1072,33 @@ tab bis
 
 tab self
 
+** 16-AUG-2018
+** ANALYSIS EXTRA
+** (1) Tabulate prednisolone dose
+gen pdosec = .
+replace pdosec = 1 if pred_dose==0
+replace pdosec = 2 if pred_dose>0 & pred_dose<=7.5
+replace pdosec = 3 if pred_dose>7.5 & pred_dose<=15
+replace pdosec = 4 if pred_dose>15 & pred_dose<=30
+replace pdosec = 5 if pred_dose>30 & pred_dose<=60
+tab pred_dose
+tab pdosec
+
+** (2) Osteo and current prednisolone use
+gen bone = 0
+replace bone = 1 if osteo==1
+replace bone = . if osteo==.
+gen prednow = 0
+replace prednow = 1 if pred==1
+tab prednow bone, row chi exact
+table bone, c(mean pred_dose sd pred_dose)
+ttest pred_dose, by(bone)
+
+
+
+
+
+
 ** Table 4b**********************************************
 foreach var in educ2 occ_grade1 discount {
 	preserve
@@ -1019,8 +1107,8 @@ foreach var in educ2 occ_grade1 discount {
 	restore
 	}
 
-**Table 4c *********************************************
-*Refer to CH's regression dofile
+
+
 
 ** Addendum*********************************************
 *Calculate incidence rate per year band as seen in Figure 1
@@ -1071,7 +1159,7 @@ preserve
 	gen ir=.
 	replace ir=(k/(pop2*10))*100000 if godx<=3
 	replace ir=(k/(pop2*5))*100000 if godx>=4 & godx<=6
-	replace ir=(k/(pop2*3))*100000 if godx==7
+	replace ir=(k/(pop2*3.33))*100000 if godx==7
 	gen pop3=pop2
 	replace pop3=(pop2*10) if godx<=3
 	replace pop3=(pop2*5) if godx>=4 & godx<=6
@@ -1083,7 +1171,10 @@ restore
 preserve
 	gen country = 1
 	drop if sex==2
-	gen pop2 = 50091*10 + 57698*10 + 67848*10 + 76859*5 + 80094*5 + 84684*5 + 86812*3.33
+	*male population
+	*gen pop2 = 50091*10 + 57698*10 + 67848*10 + 76859*5 + 80094*5 + 84684*5 + 86812*3.33
+	*female population
+	gen pop2 = 54063*10 + 60281*10 + 70332*10 + 80086*5 + 83616*5 + 87890*5 + 90395*3.33
 	collapse (sum) country, by(pop2)
 	gen irc=(country/(pop2))*100000
 restore
@@ -1097,10 +1188,6 @@ preserve
 	collapse (sum) country, by(pop3)
 	gen irc=(country/(pop3))*100000
 restore
-
-/*
-** TODO
-** Table 1: Calculate overall prevalence
 
 *Figure 1b: Calculate relative incidence by district (using 2016 CMO report for district popl'n)
 preserve

@@ -340,14 +340,14 @@ preserve
 			bar(3, bc(red*0.65) blw(vthin) blc(gs0))
 
 		   	ylab(0(20)100, nogrid glc(gs0)) yscale(noline range(1(5)45))
-		    ytitle("Prevalence of symptom count", margin(t=3) size(medium))
+		    ytitle("Prevalence of complications (count)", margin(t=3) size(medium))
 			ymtick(0(10)100)
 
 			legend(size(medium) position(12) bm(t=0 b=5 l=0 r=0) colf cols(2)
 			region(fcolor(gs16) lw(vthin) margin(l=1 r=1 t=1 b=1))
-			lab(1 "0 symptoms")
-			lab(2 "1 symptom")
-			lab(3 "2+ symptoms")
+			lab(1 "0 complications")
+			lab(2 "1 complication")
+			lab(3 "2+ complications")
 			)
 			name(figure6a);
 	#delimit cr
@@ -396,7 +396,7 @@ preserve
 			bar(2, bc(red*0.65) blw(vthin) blc(gs0))
 
 		   	ylab(0(20)100, nogrid glc(gs0)) yscale(noline range(1(5)45))
-		    ytitle("Prevalence of symptom indicator", margin(t=3) size(medium))
+		    ytitle("Prevalence of complications (indicator)", margin(t=3) size(medium))
 			ymtick(0(10)100)
 
 			legend(size(medium) position(12) bm(t=0 b=5 l=0 r=0) colf cols(1)
@@ -449,14 +449,14 @@ preserve
 			bar(3, bc(red*0.65) blw(vthin) blc(gs0))
 
 		   	ylab(0(20)100, nogrid glc(gs0)) yscale(noline range(1(5)45))
-		    ytitle("Prevalence of symptom count", margin(t=3) size(medium))
+		    ytitle("Prevalence of complications (count)", margin(t=3) size(medium))
 			ymtick(0(10)100)
 
 			legend(size(medium) position(12) bm(t=0 b=5 l=0 r=0) colf cols(2)
 			region(fcolor(gs16) lw(vthin) margin(l=1 r=1 t=1 b=1))
-			lab(1 "0 symptoms")
-			lab(2 "1 symptom")
-			lab(3 "2+ symptoms")
+			lab(1 "0 complications")
+			lab(2 "1 complication")
+			lab(3 "2+ complications")
 			)
 			name(figure7a);
 	#delimit cr
@@ -502,7 +502,7 @@ preserve
 			bar(2, bc(red*0.65) blw(vthin) blc(gs0))
 
 		   	ylab(0(20)100, nogrid glc(gs0)) yscale(noline range(1(5)45))
-		    ytitle("Prevalence of symptom indicator", margin(t=3) size(medium))
+		    ytitle("Prevalence of complications (indicator)", margin(t=3) size(medium))
 			ymtick(0(10)100)
 
 			legend(size(medium) position(12) bm(t=0 b=5 l=0 r=0) colf cols(1)
