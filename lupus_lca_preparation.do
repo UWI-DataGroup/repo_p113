@@ -24,7 +24,6 @@ capture log close
 cap log using "`logpath'\lupus_lca_preparation", replace
 ** HEADER -----------------------------------------------------
 
-/*
 
 ** ***************************************************
 ** DATASET PART 1.
@@ -156,17 +155,17 @@ replace district = 8 if  DISTRICT=="LABORIE" | DISTRICT=="Laborie"
 replace district = 9 if  DISTRICT=="MICOUD"
 replace district = 10 if DISTRICT=="SOUFRIERE"
 replace district = 11 if DISTRICT=="VIEUX FORT" | DISTRICT=="VIEUX-FORT" | DISTRICT=="Vieux Fort"
-label define district 	1 "anse-la-raye"	///
-						2 "babonneau"		///
-						3 "canaries"		///
-						4 "castries"		///
-						5 "choiseul"		///
-						6 "dennery"			///
-						7 "gros-islet"		///
-						8 "laborie"			///
-						9 "micoud"			///
-						10 "soufriere"		///
-						11 "vieux fort"
+label define district 	1 "Anse-la-Raye"	///
+						2 "Babonneau"		///
+						3 "Canaries"		///
+						4 "Castries"		///
+						5 "Choiseul"		///
+						6 "Dennery"			///
+						7 "Gros-Islet"		///
+						8 "Laborie"			///
+						9 "Micoud"			///
+						10 "Soufriere"		///
+						11 "Vieux Fort"
 
 label values district district
 
@@ -710,7 +709,7 @@ save "`datapath'\version01\2-working\lupus_lca_003", replace
 
 
 
-*/
+
 ** *****************************************************
 ** Merge the three datasets
 ** *****************************************************
@@ -1097,7 +1096,7 @@ ttest pred_dose, by(bone)
 
 
 
-
+/*
 
 ** Table 4b**********************************************
 foreach var in educ2 occ_grade1 discount {
@@ -1218,8 +1217,54 @@ preserve
 	*IH used "cii prop" command to calculate the confidence intervals for these
 restore
 
+*/
 
+** -------------------------------------------
+** 20-AUG-2018
+** FINAL ad-hoc percentages
+** -------------------------------------------
 
+** 1. % on dialysis who were non-adherent
+tab dial
+tab adh
+tab dial adh, row
+
+** 2. % hypertensive
+tab htn
+
+** 3. % diabetic
+tab dm
+
+** 4. % with dyslipidemia
+tab lipid
+
+** 5. % with obesity
+mark ob1 if bmi1>=30 & bmi1<.
+replace ob1 = . if bmi1==.
+mark ov1 if bmi1>=25 & bmi1<.
+replace ov1 = . if bmi1==.
+tab ob1
+tab ov1
+mark ob2 if bmi2>=30 & bmi2<.
+replace ob2 = . if bmi2==.
+mark ov2 if bmi2>=25 & bmi2<.
+replace ov2 = . if bmi2==.
+tab ob2
+tab ov2
+
+** 6. % patients with nephritis and dialysis who also are:
+**		A. Hypertensive
+tab dial htn, row
+**		B. Diabetic
+tab dial dm, row
+**		C. Dyslipidemic
+tab dial lipid, row
+**		D. Obese
+tab dial ob2, row
+**		E. All of the above
+gen call = 0
+replace call = 1 if htn==1 & dm==1 & lipid==1 & ob2==1
+tab dial call, row
 
 
 
