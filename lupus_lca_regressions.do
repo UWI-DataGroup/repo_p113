@@ -108,6 +108,9 @@ logistic adh2 sex age dx2now discount
 logistic adh2 sex age dx2now self2
 ** logistic adh2 sex age dx2now educ2 i.occ_grade1 discount
 ** logistic adh2 sex age dx2now educ2 occ_grade1 discount
+
+
+
 */
 
 ** MORTALITY RATES
