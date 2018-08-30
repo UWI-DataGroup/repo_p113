@@ -15,7 +15,7 @@ set linesize 80
 
 ** Set working directories: this is for DATASET and LOGFILE import and export
 ** DATASETS to encrypted SharePoint folder
-local datapath "X:\The University of the West Indies\DataGroup - repo_data\data_p113\"
+local datapath "X:\The University of the West Indies\DataGroup - repo_data\data_p113"
 ** LOGFILES to unencrypted OneDrive folder
 local logpath X:\OneDrive - The University of the West Indies\repo_datagroup\repo_p113
 
@@ -1268,7 +1268,6 @@ tab dial call, row
 
 
 
-
 /*
 ** WORKING NOTES (To be ignored)
 *Table 1: Calculate overall incidence (1970 - 2018)
@@ -1289,3 +1288,34 @@ tab dial call, row
 *Nephritis data is incorrect. This affects Fig 2A-2D, Figure 4, Table 2a (Renal biopsy), Table 3c, Table 5a. Need to rerun.
 
 *Regression figure (CH has her own dofile): Need to have each predictor have a different symbol (abstract is monochromatic).
+
+*/
+
+** For appendices - tablulating SLE criteria
+
+codebook acr
+gen acrg=.
+replace acrg=1 if acr<=5
+replace acrg=2 if acr==6 | acr==7
+replace acrg=3 if acr==8 | acr==9
+replace acrg=4 if acr==10 | acr==11
+label variable acrg "Person meets ACR criteria, by group"
+label define acrg 1 "meets <=5 ACR criteria" 2 "meets 6-7 ACR criteria" 3 "meets 8-9 ACR criteria" 4 "meets 10-11 ACR criteria"
+label values acrg acrg
+tab acrg
+prop acrg
+
+codebook slicc
+gen sliccg=.
+replace sliccg=1 if slicc<=5
+replace sliccg=2 if slicc==6 | slicc==7
+replace sliccg=3 if slicc==8 | slicc==9
+replace sliccg=4 if slicc==10 | slicc==11
+replace sliccg=5 if slicc==12 | slicc==13
+replace sliccg=6 if slicc==14 | slicc==15
+replace sliccg=7 if slicc==16 | slicc==17
+label variable sliccg "Person meets SLICC criteria, by group"
+label define sliccg 1 "meets <=5 SLICC criteria" 2 "meets 6-7 SLICC criteria" 3 "meets 8-9 SLICC criteria" 4 "meets 10-11 SLICC criteria" 5 "meets 12-13 SLICC criteria" 6 "meets 14-15 SLICC criteria" 7 "meets 16-17 SLICC criteria"
+label values sliccg sliccg
+tab sliccg
+prop sliccg
