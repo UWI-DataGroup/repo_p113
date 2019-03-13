@@ -1,5 +1,5 @@
 ** HEADER -----------------------------------------------------
-** DO-FILE METADATA
+**  DO-FILE METADATA
 //  algorithm name			lupus_lca_preparation.do
 //  project:						Epidemiology of Lupus in ST.Lucia
 //  analysts:						Ian HAMBLETON
