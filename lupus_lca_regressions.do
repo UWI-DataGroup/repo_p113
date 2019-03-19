@@ -134,83 +134,57 @@ restore
 ** Survival RATES
 ** KEEP limited number of variables for ease
 tempfile s1 s2 s3 s4
-keep pid sex dob aad discount
+keep pid sex dob aad discount adh2 educ2 occ_grade1 sev self2
 gen yob = year(dob)
 gen yod = yob+aad
 gen mod = 01
 gen dod = 01
 gen date_diag = mdy(mod, dod, yod)
 format date_diag %dD_m_CY
-keep pid sex dob date_diag discount
+keep pid sex dob date_diag discount adh2 educ2 occ_grade1 sev self2
 sort pid
 save `s1'
 
-import excel using "`datapath'\version01\1-input\Lupus Database 2018_workingfile_v2_30-04-2018.xlsx", sheet("survival") first clear
-drop LASTFU
-rename ID pid
+** 17-MAR-2019
+** We import a new survival dataset created by Cleo Altenor in early March
+** This new file records accurate DoB and Date of last visit to clinic
+** Study End = 31-Mar-2019. DOLV must therefore be backdated 
+import excel using "`datapath'\version01\1-input\20190317_lupus_entry_final.xlsx", sheet("irh_prepared") first clear
+drop N name1 name2 
+rename id pid
+rename sex sex_str 
 drop if pid==.
-gen dlast = 1
-gen mlast = 1 if mlast_str=="jan"
-replace mlast = 2 if mlast_str=="feb"
-replace mlast = 3 if mlast_str=="mar"
-replace mlast = 4 if mlast_str=="apr"
-replace mlast = 5 if mlast_str=="may"
-replace mlast = 6 if mlast_str=="jun"
-replace mlast = 7 if mlast_str=="jul"
-replace mlast = 8 if mlast_str=="aug"
-replace mlast = 9 if mlast_str=="sep"
-replace mlast = 10 if mlast_str=="oct"
-replace mlast = 11 if mlast_str=="nov"
-replace mlast = 12 if mlast_str=="dec"
-gen date_last = mdy(mlast, dlast, ylast)
+
+** Convert month from string to numeric
+rename last_visit_month t1
+gen last_visit_month = 1 if t1=="jan"
+replace last_visit_month = 2 if t1=="feb"
+replace last_visit_month = 3 if t1=="mar"
+replace last_visit_month = 4 if t1=="apr"
+replace last_visit_month = 5 if t1=="may"
+replace last_visit_month = 6 if t1=="jun"
+replace last_visit_month = 7 if t1=="jul"
+replace last_visit_month = 8 if t1=="aug"
+replace last_visit_month = 9 if t1=="sep"
+replace last_visit_month = 10 if t1=="oct"
+replace last_visit_month = 11 if t1=="nov"
+replace last_visit_month = 12 if t1=="dec"
+drop t1
+
+** Date of last visit to clinic / date of death
+gen date_last = mdy(last_visit_month, last_visit_day, last_visit_year)
 format date_last %dD_m_CY
-keep pid date_last
 
-** Dates of death
-** JL 18/11/14
-** VJ 20/04/2015
-** SJ 17/03/2016
-** TR 13/04/2009
-** LM 05/09/08
-** MA 26/12/2009
-** BA 3/11/16
-** LB 01/07/15
-** FH 03/11/07
-** LV 24/08/2012
-** SS 30/07/2014
-** AR 11/11/2012
-** C.F 11/11/2013
-gen date_death = .
-replace date_death = d(26dec2009) if pid==7
-replace date_death = d(03nov2016) if pid==10
-replace date_death = d(01jul2015) if pid==17
-replace date_death = d(11nov2013) if pid==48
-replace date_death = d(03nov2007) if pid==65
-replace date_death = d(17mar2016) if pid==75
-replace date_death = d(20apr2015) if pid==80
-replace date_death = d(18nov2014) if pid==92
-replace date_death = d(05sep2008) if pid==100
-replace date_death = d(13apr2009) if pid==121
-replace date_death = d(11nov2012) if pid==122
-replace date_death = d(30jul2014) if pid==129
-replace date_death = d(24aug2012) if pid==143
-format date_death %dD_m_CY
+** Date of diagnosis
+gen date_diag = mdy(diag_month, diag_day, diag_year)
+format date_diag %dD_m_CY
 
-gen status = 0
-#delimit ;
-    replace status = 1 if   pid==7 | pid==10 | pid==17 |
-                            pid==48 | pid==65 | pid==75 |
-                            pid==80 | pid==92 | pid==100 |
-                            pid==121 | pid==122 | pid==129 | pid==143;
-#delimit cr
-replace date_last = date_death if date_death<.
-drop date_death
 sort pid
 merge 1:1 pid using `s1'
 keep if _merge==3
 drop _merge
-order pid sex status dob date_diag date_last discount
-
+order pid sex sex_str alive dob date_diag date_last discount
+drop sex_str diag_* last_*
 
 ** Age at diagnosis (months / years)
 gen aad1 = int((date_diag - dob)/30.4375)
@@ -221,9 +195,21 @@ gen aal2 = int((date_last - dob)/365.25)
 
 
 ** stset aal2, failure(status) origin(aad2)
-stset date_last, id(pid) fail(status=1) origin(time date_diag) scale(365.25)
+stset date_last, id(pid) fail(alive=0) origin(time date_diag) scale(365.25)
+** Treatment discount (0=no, 1=yes)
 sts test discount
-sts list
+** Treatment adherence (0 "Current adherent" 1 "Current non-adherent")
+sts test adh2 
+** Education (1 "tertiary" 2 "secondary")
+sts test educ2 
+** Occupation (1 "Routine/manual" 2 "Intermediate" 3 "Professional" 4 "Not in employment")
+sts test occ_grade1 
+** Severity (1 "Severe" 0 "Not severe")
+sts test sev 
+** Self-help programme (0 "Done programme" 1 "Not done programme")
+sts test self2
+** sts list
+
 
 #delimit ;
 sts gr  , by(discount)
@@ -247,7 +233,7 @@ sts gr  , by(discount)
 	///text(0.62 41 "Any", place(e) size(*1.0))
 	title("")
     legend(off)
-	name(figX, replace)
+	name(fig1A, replace)
 	;
 #delimit cr
 
@@ -272,9 +258,111 @@ streg i.discount i.sex, d(weibull) hr
 	lab(1 "No Discount")
 	lab(2 "Discount")
 	)
-	name(FigY, replace)
+	name(Fig1B, replace)
 	;
 #delimit cr
+
+streg i.adh2 i.sex, d(weibull) hr
+#delimit ;
+	stcurve, surv at1(adh2=0) at2(adh2=1) lp("l" "-") lc(gs0 gs8)
+	graphregion(fcolor(gs16) icolor(gs16) )
+	plotregion(fcolor(gs16) icolor(gs16) )
+	ysize(4) xsize(3)
+
+    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
+	xtitle("Age (years)", size(large) margin(t=3))
+	xtick(0(5)45)
+	xmtick(0(2.5)45)
+
+    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
+	ytitle("Proportion alive", size(large) margin(r=3))
+	ymtick(0.4(0.05)1)
+
+	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
+	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
+	lab(1 "Adherent")
+	lab(2 "Not Adherent")
+	)
+	name(Fig2B, replace)
+	;
+#delimit cr
+
+streg i.educ2 i.sex, d(weibull) hr
+#delimit ;
+	stcurve, surv at1(educ2=1) at2(educ2=2) lp("l" "-") lc(gs0 gs8)
+	graphregion(fcolor(gs16) icolor(gs16) )
+	plotregion(fcolor(gs16) icolor(gs16) )
+	ysize(4) xsize(3)
+
+    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
+	xtitle("Age (years)", size(large) margin(t=3))
+	xtick(0(5)45)
+	xmtick(0(2.5)45)
+
+    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
+	ytitle("Proportion alive", size(large) margin(r=3))
+	ymtick(0.4(0.05)1)
+
+	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
+	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
+	lab(1 "Tertiary")
+	lab(2 "Secondary")
+	)
+	name(Fig3B, replace)
+	;
+#delimit cr
+
+streg i.sev i.sex, d(weibull) hr
+#delimit ;
+	stcurve, surv at1(sev=0) at2(sev=1) lp("l" "-") lc(gs0 gs8)
+	graphregion(fcolor(gs16) icolor(gs16) )
+	plotregion(fcolor(gs16) icolor(gs16) )
+	ysize(4) xsize(3)
+
+    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
+	xtitle("Age (years)", size(large) margin(t=3))
+	xtick(0(5)45)
+	xmtick(0(2.5)45)
+
+    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
+	ytitle("Proportion alive", size(large) margin(r=3))
+	ymtick(0.4(0.05)1)
+
+	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
+	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
+	lab(1 "Not severe")
+	lab(2 "Severe")
+	)
+	name(Fig4B, replace)
+	;
+#delimit cr
+
+
+streg i.self2 i.sex, d(weibull) hr
+#delimit ;
+	stcurve, surv at1(self2=0) at2(self2=1) lp("l" "-") lc(gs0 gs8)
+	graphregion(fcolor(gs16) icolor(gs16) )
+	plotregion(fcolor(gs16) icolor(gs16) )
+	ysize(4) xsize(3)
+
+    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
+	xtitle("Age (years)", size(large) margin(t=3))
+	xtick(0(5)45)
+	xmtick(0(2.5)45)
+
+    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
+	ytitle("Proportion alive", size(large) margin(r=3))
+	ymtick(0.4(0.05)1)
+
+	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
+	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
+	lab(1 "Done programme")
+	lab(2 "Not done programme")
+	)
+	name(Fig4B, replace)
+	;
+#delimit cr
+
 
 /*
 ** NOT USED

@@ -39,22 +39,23 @@ shp2dta using "`datapath'\version01\1-input\shape\LCA_adm0"
                 data("`datapath'\version01\1-input\shape\lca0_database")
                 coor("`datapath'\version01\1-input\shape\lca0_coords")
                 replace
-                genid(_polygonid);
+                genid(_polygonid0);
 #delimit cr
 
 ** SAINT LUCIA - ADMIN LEVEL 1 -- District-level
+
 #delimit ;
 shp2dta using "`datapath'\version01\1-input\shape\LCA_adm1"
 				,
                 data("`datapath'\version01\1-input\shape\lca1_database")
                 coor("`datapath'\version01\1-input\shape\lca1_coords")
                 replace
-                genid(_polygonid);
+                genid(_polygonid1);
 #delimit cr
 
 ** Add Incidence Rates
 tempfile ir1 ir2
-input   str12 NAME_1  _polygonid  ir
+input   str12 NAME_1  _polygonid1  ir
         "Anse-la-Raye"  	   1   3.4
         "Canaries"	           2   4.1
         "Castries"	           3   3.7
@@ -68,7 +69,7 @@ input   str12 NAME_1  _polygonid  ir
 end
 save `ir1'
 use "`datapath'\version01\1-input\shape\lca1_database", replace
-merge 1:1 _polygonid using `ir1'
+merge 1:1 _polygonid1 using `ir1'
 drop _merge
 save `ir2'
 
