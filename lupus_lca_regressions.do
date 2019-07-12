@@ -113,24 +113,6 @@ logistic adh2 sex age dx2now self2
 
 */
 
-** MORTALITY RATES
-** 16-AUG-2018
-** 13 people have died - across the full time frame
-** Full time frame had XX person years
-
-	** Overall MR
-preserve
-	gen dead = 0
-    replace dead = 1 if alive==0
-	drop if sex==2
-	*male population
-	*gen pop2 = 50091*10 + 57698*10 + 67848*10 + 76859*5 + 80094*5 + 84684*5 + 86812*3.33
-	*female population
-	gen pop2 = 54063*10 + 60281*10 + 70332*10 + 80086*5 + 83616*5 + 87890*5 + 90395*3.33
-	collapse (sum) dead, by(pop2)
-	gen mrc=(dead/(pop2))*100000
-restore
-
 ** Survival RATES
 ** KEEP limited number of variables for ease
 tempfile s1 s2 s3 s4
@@ -186,6 +168,8 @@ drop _merge
 order pid sex sex_str alive dob date_diag date_last discount
 drop sex_str diag_* last_*
 
+** Fix 1 DOB
+replace dob = d(26nov1983) if pid==73 & dob==. 
 ** Age at diagnosis (months / years)
 gen aad1 = int((date_diag - dob)/30.4375)
 gen aad2 = int((date_diag - dob)/365.25)
@@ -196,6 +180,10 @@ gen aal2 = int((date_last - dob)/365.25)
 
 ** stset aal2, failure(status) origin(aad2)
 stset date_last, id(pid) fail(alive=0) origin(time date_diag) scale(365.25)
+
+** K-M estimates
+sts list
+
 ** Treatment discount (0=no, 1=yes)
 sts test discount
 ** Treatment adherence (0 "Current adherent" 1 "Current non-adherent")
@@ -210,9 +198,9 @@ sts test sev
 sts test self2
 ** sts list
 
-
+** K-M descriptive chart
 #delimit ;
-sts gr  , by(discount)
+sts gr  , by(sev)
 	graphregion(fcolor(gs16) icolor(gs16) )
 	plotregion(fcolor(gs16) icolor(gs16) )
 	ysize(4) xsize(3)
@@ -233,13 +221,14 @@ sts gr  , by(discount)
 	///text(0.62 41 "Any", place(e) size(*1.0))
 	title("")
     legend(off)
-	name(fig1A, replace)
+	name(severity_KM, replace)
 	;
 #delimit cr
 
-streg i.discount i.sex, d(weibull) hr
+** WEIBULL: DISCOUNT by SEX
+streg i.sev i.sex, d(weibull) hr
 #delimit ;
-	stcurve, surv at1(discount=0) at2(discount=1) lp("l" "-") lc(gs0 gs8)
+	stcurve, surv at1(sev=0) at2(sev=1) lp("l" "-") lc(gs0 gs8)
 	graphregion(fcolor(gs16) icolor(gs16) )
 	plotregion(fcolor(gs16) icolor(gs16) )
 	ysize(4) xsize(3)
@@ -258,10 +247,38 @@ streg i.discount i.sex, d(weibull) hr
 	lab(1 "No Discount")
 	lab(2 "Discount")
 	)
-	name(Fig1B, replace)
+	name(severity_weibull, replace)
 	;
 #delimit cr
 
+** K-M descriptive chart
+#delimit ;
+sts gr  , by(adh)
+	graphregion(fcolor(gs16) icolor(gs16) )
+	plotregion(fcolor(gs16) icolor(gs16) )
+	ysize(4) xsize(3)
+
+    plot1opts(lp("l") lw(medium) lc(gs0) )
+    plot2opts(lp("-") lw(medium) lc(gs8) )
+
+	xtitle("Age (years)", size(large) margin(t=3))
+    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
+	xtick(0(5)45)
+	xmtick(0(2.5)45)
+
+    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
+	ytitle("Proportion alive", size(large) margin(r=3))
+	///ymtick(0(0.1)1)
+
+	/// addplot(line p_st t_st, sort lp("-") lc(gs0) || line p_ma t_ma, sort lp("-") lc(gs0))
+	///text(0.62 41 "Any", place(e) size(*1.0))
+	title("")
+    legend(off)
+	name(adherence_KM, replace)
+	;
+#delimit cr
+
+** WEIBULL: ADHERENCE by SEX
 streg i.adh2 i.sex, d(weibull) hr
 #delimit ;
 	stcurve, surv at1(adh2=0) at2(adh2=1) lp("l" "-") lc(gs0 gs8)
@@ -283,98 +300,6 @@ streg i.adh2 i.sex, d(weibull) hr
 	lab(1 "Adherent")
 	lab(2 "Not Adherent")
 	)
-	name(Fig2B, replace)
+	name(adherence_weibull, replace)
 	;
 #delimit cr
-
-streg i.educ2 i.sex, d(weibull) hr
-#delimit ;
-	stcurve, surv at1(educ2=1) at2(educ2=2) lp("l" "-") lc(gs0 gs8)
-	graphregion(fcolor(gs16) icolor(gs16) )
-	plotregion(fcolor(gs16) icolor(gs16) )
-	ysize(4) xsize(3)
-
-    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
-	xtitle("Age (years)", size(large) margin(t=3))
-	xtick(0(5)45)
-	xmtick(0(2.5)45)
-
-    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
-	ytitle("Proportion alive", size(large) margin(r=3))
-	ymtick(0.4(0.05)1)
-
-	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
-	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
-	lab(1 "Tertiary")
-	lab(2 "Secondary")
-	)
-	name(Fig3B, replace)
-	;
-#delimit cr
-
-streg i.sev i.sex, d(weibull) hr
-#delimit ;
-	stcurve, surv at1(sev=0) at2(sev=1) lp("l" "-") lc(gs0 gs8)
-	graphregion(fcolor(gs16) icolor(gs16) )
-	plotregion(fcolor(gs16) icolor(gs16) )
-	ysize(4) xsize(3)
-
-    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
-	xtitle("Age (years)", size(large) margin(t=3))
-	xtick(0(5)45)
-	xmtick(0(2.5)45)
-
-    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
-	ytitle("Proportion alive", size(large) margin(r=3))
-	ymtick(0.4(0.05)1)
-
-	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
-	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
-	lab(1 "Not severe")
-	lab(2 "Severe")
-	)
-	name(Fig4B, replace)
-	;
-#delimit cr
-
-
-streg i.self2 i.sex, d(weibull) hr
-#delimit ;
-	stcurve, surv at1(self2=0) at2(self2=1) lp("l" "-") lc(gs0 gs8)
-	graphregion(fcolor(gs16) icolor(gs16) )
-	plotregion(fcolor(gs16) icolor(gs16) )
-	ysize(4) xsize(3)
-
-    xlab(, labs(large) nogrid glc(gs13)) xscale(lw(vthin) range(0(5)45))
-	xtitle("Age (years)", size(large) margin(t=3))
-	xtick(0(5)45)
-	xmtick(0(2.5)45)
-
-    ylab(0(0.2)1,labs(large) nogrid glc(gs13) angle(0) format(%9.1f)) yscale(lw(vthin))
-	ytitle("Proportion alive", size(large) margin(r=3))
-	ymtick(0.4(0.05)1)
-
-	legend(off size(medium) position(6) bm(t=1 b=0 l=0 r=0) colf cols(2)
-	region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2)) order(1 2)
-	lab(1 "Done programme")
-	lab(2 "Not done programme")
-	)
-	name(Fig4B, replace)
-	;
-#delimit cr
-
-
-/*
-** NOT USED
-
-**regression 1: Cerebritis (y/n); Predictors: sex, age, duration of diagnosis, education, occupation, discount, adherence
-logistic cereb sex age i.educ2
-logistic cereb sex age discount
-logistic cereb i.sex age dx2now i.educ2 i.occ_grade1 discount adh
-
-
-**regression 3:	Dialysis (y/n); Predictors: sex, age, duration of diagnosis, education, occupation, discount, adherence
-logistic dial sex age i.educ2
-logistic dial sex age discount
-logistic dial i.sex age dx2now i.educ2 i.occ_grade1 discount adh
-logistic dial sex age dx2now educ2 occ_grade1 discount adh

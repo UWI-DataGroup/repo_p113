@@ -30,7 +30,7 @@ cap log using "`logpath'\lupus_lca_graphics", replace
 use "`datapath'\version01\2-working\lupus_lca_april2018_v3.dta", clear
 
 ** STATISTICS TO ACCOMPANY GRAPHICS ON PPTX SLIDES
-
+/*
 
 ** Grouped year of diagnosis
 gen godx = 1 if yodx>=1970 & yodx<=1979
@@ -138,13 +138,13 @@ tabsort district
 
 ** Group the adherence variable into x2 categories
 recode adh 2=0 3=1
-
+*/
 *Group education into 2 groups
 gen educ2 = educ
 recode educ2 1=2
 label define educ2 2 "secondary" 3 "tertiary",modify
 label values educ2 educ2
-
+/*
 ** Numbers in each educational group
 preserve
 	drop if educ2==. | adh==.
@@ -301,7 +301,7 @@ tab imm educ2
 tab imm educ2, col nofreq
 
 
-
+*/
 
 ** FIGURE 6a.
 ** SEVERITY COUNT by SEP (for which we use education)
@@ -518,3 +518,119 @@ restore
 ** Symptoms by SEP
 tab sevi discount
 tab sevi discount, col nofreq
+
+
+
+
+
+** ARTICLE FIGURE 1a.
+** SEVERITY COUNT by SEP (for which we use education)
+** Stacked bar chart
+** Severity defined dichotomously as
+** SEVERE 		--> cerebritis OR nephritis OR dialysis
+** NOT SEVERE 	--> NOT (cerebritis AND nephritis AND dialysis)
+** cereb 	--> cerebritis
+** neph 	--> nephritis
+** dial		--> dialysis
+** drop if cereb==. | neph==. | 	 dial==.
+** gen sevc = cereb + neph + dial
+** recode sevc 3=2
+
+** Numbers in each educational group
+
+label define educ2_ 2 "Secondary  " 3 "Tertiary  ",modify
+label values educ2 educ2_ 
+
+preserve
+	drop if educ2==. | sevc==.
+	bysort educ2: gen denom=_N
+	gen prev = (1/denom)*100
+
+	#delimit ;
+		gen prev1 = prev if sevc==0;
+		gen prev2 = prev if sevc==1;
+		gen prev3 = prev if sevc==2;
+
+	graph hbar (sum) prev1 prev2 prev3 , stack
+		    plotregion(c(gs16) ic(gs16) ilw(thin) lw(thin))
+		    graphregion(color(gs16) ic(gs16) ilw(thin) lw(thin))
+
+			over(educ2, gap(5) label(labgap(3)))
+			blabel(none, format(%9.0f) pos(outside) size(medsmall))
+
+			bar(1, bc(gs12) blw(vthin) blc(gs0))
+			bar(2, bc(gs8) blw(vthin) blc(gs0))
+			bar(3, bc(gs4) blw(vthin) blc(gs0))
+
+		   	ylab(0(20)100, nogrid glc(gs0)) yscale(noline range(1(5)45))
+		    ytitle("  ", margin(t=3) size(medium))
+			ymtick(0(10)100)
+
+			legend(size(medium) position(12) bm(t=0 b=5 l=0 r=0) colf cols(1)
+			region(fcolor(gs16) lw(vthin) margin(l=1 r=1 t=1 b=1))
+			lab(1 "0 complications")
+			lab(2 "1 complication")
+			lab(3 "2+ complications")
+			)
+			name(articlefig_1A);
+	#delimit cr
+restore
+
+** ARTICLE FIGURE 1B
+** SEVERITY by DISCOUNT
+** Stacked bar chart
+
+** Numbers in each educational group
+preserve
+	drop if discount==. | sevc==.
+	bysort discount: gen denom=_N
+	gen prev = (1/denom)*100
+
+	gen discount_rev = discount
+	recode discount_rev 1=0 0=1
+	label define discount_rev 1 "No discount" 0 "Discount", modify
+	label values discount_rev discount_rev
+
+	#delimit ;
+	gen prev1 = prev if sevc==0;
+	gen prev2 = prev if sevc==1;
+	gen prev3 = prev if sevc==2;
+
+	graph hbar (sum) prev1 prev2 prev3 , stack
+		    plotregion(c(gs16) ic(gs16) ilw(thin) lw(thin))
+		    graphregion(color(gs16) ic(gs16) ilw(thin) lw(thin))
+
+			over(discount_rev, gap(5))
+			blabel(none, format(%9.0f) pos(outside) size(medsmall))
+
+			bar(1, bc(gs12) blw(vthin) blc(gs0))
+			bar(2, bc(gs8) blw(vthin) blc(gs0))
+			bar(3, bc(gs4) blw(vthin) blc(gs0))
+
+		   	ylab(0(20)100, nogrid glc(gs0)) yscale(noline range(1(5)45))
+		    ytitle("Prevalence of complications (%)", margin(t=3) size(medium))
+			ymtick(0(10)100)
+
+			legend(size(medium) position(12) bm(t=0 b=5 l=0 r=0) colf cols(1)
+			region(fcolor(gs16) lw(vthin) margin(l=1 r=1 t=1 b=1))
+			lab(1 "0 complications")
+			lab(2 "1 complication")
+			lab(3 "2+ complications")
+			)
+			name(articlefig_1B);
+	#delimit cr
+restore
+
+
+** GRAPH COMBINE
+#delimit ;
+grc1leg2 articlefig_1A articlefig_1B, 
+	    plotregion(c(gs16) ic(gs16) ilw(thin) lw(thin))
+	    graphregion(color(gs16) ic(gs16) ilw(thin) lw(thin))
+		ysize(15) xsize(5)
+		rows(2) cols(1) 
+		iscale(1) imargin(0 0 0 0) 
+		legendfrom(articlefig_1A) 
+		pos(12)
+	;
+#delimit cr
